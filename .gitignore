@@ -1,0 +1,5 @@
+*.json
+__pycache__
+__pycache__/*
+*.pyc
+secret.py

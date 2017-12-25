@@ -1,5 +1,5 @@
-import requests, json, arrow
-from secret import USERNAME, PASSWORD, NS_URL
+import requests, json, arrow, hashlib, urllib
+from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
 NS_AUTHOR = "Diabetes-M (dm2nsc)"
 
 
@@ -33,12 +33,15 @@ def get_entries(login):
 def to_mgdl(mmol):
 	return round(mmol*18)
 
-def convert_nightscout(entries):
+def convert_nightscout(entries, start_time=None):
 	out = []
 	for entry in entries:
 		bolus = entry["carb_bolus"] + entry["correction_bolus"]
 		time = arrow.get(int(entry["entry_time"])/1000).to(entry["timezone"])
 		notes = entry["notes"]
+
+		if start_time and start_time > time:
+			continue
 
 		author = NS_AUTHOR
 		if arrow.get("10/3/2017").date() > time.date():
@@ -76,6 +79,22 @@ def convert_nightscout(entries):
 
 	return out
 
+def upload_nightscout(ns_format):
+	upload = requests.post(NS_URL + 'api/v1/treatments?api_secret=' + NS_SECRET, json=ns_format, headers={
+		'Accept': 'application/json',
+		'Content-Type': 'application/json',
+		'api-secret': hashlib.sha1(NS_SECRET.encode()).hexdigest()
+	})
+	print("NS UPLOAD:", upload.status_code)
+	print(upload.text)
+
+def get_last_nightscout():
+	last = requests.get(NS_URL + 'api/v1/treatments?count=1&find[enteredBy]='+urllib.parse.quote(NS_AUTHOR))
+	if last.status_code == 200:
+		js = last.json()
+		if len(js) > 0:
+			return aarow.get(js[0]['created_at']).datetime
+
 def main():
 	if True:
 		login = get_login()
@@ -97,10 +116,14 @@ def main():
 		"basal": i["basal"]
 		} for i in entries["logEntryList"]]))
 	
-	ns_format = convert_nightscout(entries["logEntryList"])
+	ns_last = get_last_nightscout()
+
+	ns_format = convert_nightscout(entries["logEntryList"], ns_last)
 
 	open("nsout.json", "w").write(json.dumps(ns_format))
 	print(ns_format)
+
+	upload_nightscout(ns_format)
 
 
 if __name__ == '__main__':

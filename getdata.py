@@ -40,7 +40,7 @@ def convert_nightscout(entries, start_time=None):
 		time = arrow.get(int(entry["entry_time"])/1000).to(entry["timezone"])
 		notes = entry["notes"]
 
-		if start_time and start_time > time:
+		if start_time and start_time >= time:
 			continue
 
 		author = NS_AUTHOR
@@ -93,7 +93,7 @@ def get_last_nightscout():
 	if last.status_code == 200:
 		js = last.json()
 		if len(js) > 0:
-			return aarow.get(js[0]['created_at']).datetime
+			return arrow.get(js[0]['created_at']).datetime
 
 def main():
 	if True:
@@ -102,27 +102,15 @@ def main():
 			entries = get_entries(login)
 	else:
 		entries = json.loads(open("entries.json","r").read())
-	print(len(entries["logEntryList"]), "entries")
-
-
-	open("simple_dm.json", "w").write(json.dumps([{
-		"entry_time": i["entry_time"],
-		"carb_bolus": i["carb_bolus"],
-		"correction_bolus": i["correction_bolus"],
-		"carbs": i["carbs"],
-		"notes": i["notes"],
-		"glucose": i["glucose"],
-		"us_units": i["us_units"],
-		"basal": i["basal"]
-		} for i in entries["logEntryList"]]))
-	
+	print("Loaded", len(entries["logEntryList"]), "entries")
 	ns_last = get_last_nightscout()
 
 	ns_format = convert_nightscout(entries["logEntryList"], ns_last)
 
-	open("nsout.json", "w").write(json.dumps(ns_format))
+	print("Converted", len(ns_format), "entries")
 	print(ns_format)
 
+	print("Uploading", len(ns_format), "entries...")
 	upload_nightscout(ns_format)
 
 

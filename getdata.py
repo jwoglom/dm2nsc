@@ -1,4 +1,4 @@
-import requests, json, arrow, hashlib, urllib
+import requests, json, arrow, hashlib, urllib, datetime
 from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
 NS_AUTHOR = "Diabetes-M (dm2nsc)"
 
@@ -85,8 +85,7 @@ def upload_nightscout(ns_format):
 		'Content-Type': 'application/json',
 		'api-secret': hashlib.sha1(NS_SECRET.encode()).hexdigest()
 	})
-	print("NS UPLOAD:", upload.status_code)
-	print(upload.text)
+	print("Upload status:", upload.status_code, upload.text)
 
 def get_last_nightscout():
 	last = requests.get(NS_URL + 'api/v1/treatments?count=1&find[enteredBy]='+urllib.parse.quote(NS_AUTHOR))
@@ -96,12 +95,14 @@ def get_last_nightscout():
 			return arrow.get(js[0]['created_at']).datetime
 
 def main():
-	if True:
-		login = get_login()
-		if login.status_code == 200:
-			entries = get_entries(login)
+	print("Logging in...", datetime.datetime.now())
+	login = get_login()
+	if login.status_code == 200:
+		entries = get_entries(login)
 	else:
-		entries = json.loads(open("entries.json","r").read())
+		print("Error: ",login.status_code, login.text)
+		exit(0)
+
 	print("Loaded", len(entries["logEntryList"]), "entries")
 	ns_last = get_last_nightscout()
 

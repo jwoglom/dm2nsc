@@ -4,6 +4,7 @@ from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
 # this is the enteredBy field saved to Nightscout
 NS_AUTHOR = "Diabetes-M (dm2nsc)"
 
+DO_MYSUGR_PROCESSING = (USERNAME == 'jwoglom')
 
 def get_login():
 	return requests.post('https://analytics.diabetes-m.com/api/v1/user/authentication/login', json={
@@ -48,7 +49,7 @@ def convert_nightscout(entries, start_time=None):
 		author = NS_AUTHOR
 
 		# You can do some custom processing here, if necessary. e.x.:
-		if arrow.get("10/3/2017").date() > time.date():
+		if arrow.get("10/3/2017").date() > time.date() and DO_MYSUGR_PROCESSING:
 			author = "mySugr via "+author
 			# basal data is for Lantus
 			if entry["basal"]:

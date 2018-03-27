@@ -1,5 +1,7 @@
 import requests, json, arrow, hashlib, urllib, datetime
 from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
+
+# this is the enteredBy field saved to Nightscout
 NS_AUTHOR = "Diabetes-M (dm2nsc)"
 
 
@@ -44,6 +46,8 @@ def convert_nightscout(entries, start_time=None):
 			continue
 
 		author = NS_AUTHOR
+
+		# You can do some custom processing here, if necessary. e.x.:
 		if arrow.get("10/3/2017").date() > time.date():
 			author = "mySugr via "+author
 			# basal data is for Lantus
@@ -85,7 +89,7 @@ def upload_nightscout(ns_format):
 		'Content-Type': 'application/json',
 		'api-secret': hashlib.sha1(NS_SECRET.encode()).hexdigest()
 	})
-	print("Upload status:", upload.status_code, upload.text)
+	print("Nightscout upload status:", upload.status_code, upload.text)
 
 def get_last_nightscout():
 	last = requests.get(NS_URL + 'api/v1/treatments?count=1&find[enteredBy]='+urllib.parse.quote(NS_AUTHOR))
@@ -95,23 +99,26 @@ def get_last_nightscout():
 			return arrow.get(js[0]['created_at']).datetime
 
 def main():
-	print("Logging in...", datetime.datetime.now())
+	print("Logging in to Diabetes-M...", datetime.datetime.now())
 	login = get_login()
 	if login.status_code == 200:
 		entries = get_entries(login)
 	else:
-		print("Error: ",login.status_code, login.text)
+		print("Error logging in to Diabetes-M: ",login.status_code, login.text)
 		exit(0)
 
 	print("Loaded", len(entries["logEntryList"]), "entries")
+
+	# skip uploading entries past the last entry
+	# uploaded to Nightscout by `NS_AUTHOR`
 	ns_last = get_last_nightscout()
 
 	ns_format = convert_nightscout(entries["logEntryList"], ns_last)
 
-	print("Converted", len(ns_format), "entries")
+	print("Converted", len(ns_format), "entries to Nightscout format")
 	print(ns_format)
 
-	print("Uploading", len(ns_format), "entries...")
+	print("Uploading", len(ns_format), "entries to Nightscout...")
 	upload_nightscout(ns_format)
 
 

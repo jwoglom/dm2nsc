@@ -73,9 +73,10 @@ def convert_nightscout(entries, start_time=None):
 			"enteredBy": author
 		}
 		if entry["glucose"]:
+			glucose = entry["glucoseInCurrentUnit"] if entry["glucoseInCurrentUnit"] and entry["us_units"] else to_mgdl(entry["glucose"])
 			dat.update({
 				"eventType": "BG Check",
-				"glucose": entry["glucose"] if entry["us_units"] else to_mgdl(entry["glucose"]),
+				"glucose": glucose,
 				"glucoseType": "Finger",
 				"units": "mg/dL"
 			})

@@ -1,8 +1,9 @@
 import requests, json, arrow, hashlib, urllib, datetime
-from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
+from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET, MMOL_UNITS
 
 # this is the enteredBy field saved to Nightscout
 NS_AUTHOR = "Diabetes-M (dm2nsc)"
+
 
 DO_MYSUGR_PROCESSING = (USERNAME == 'jwoglom')
 
@@ -73,13 +74,28 @@ def convert_nightscout(entries, start_time=None):
 			"enteredBy": author
 		}
 		if entry["glucose"]:
-			glucose = entry["glucoseInCurrentUnit"] if entry["glucoseInCurrentUnit"] and entry["us_units"] else to_mgdl(entry["glucose"])
-			dat.update({
+			bgEvent = {
 				"eventType": "BG Check",
-				"glucose": glucose,
 				"glucoseType": "Finger",
-				"units": "mg/dL"
-			})
+			}
+			# entry["glucose"] is always in mmol/L, but entry["glucoseInCurrentUnit"] is either mmol/L or mg/dL depending on account settings
+			# entry["us_units"] appears to always be false, even if your account is set to mg/dL, so it is ignored for now
+			unit_mmol = (entry["glucoseInCurrentUnit"] == entry["glucose"])
+
+			# for mmol/L units, if no carbs or bolus is present then we upload with mmol/L units
+			# to nightscout, otherwise we use the converted mg/dL as normal.
+			# this is due to a UI display issue with Nightscout (it will show mg/dL units always for
+			# bg-only readings, but convert to the NS default unit otherwise)
+			if unit_mmol and not (entry["carbs"] or bolus):
+				bgEvent["units"] = "mmol"
+				# save the mmol/L value from DB-M
+				bgEvent["glucose"] = entry["glucose"]
+			else:
+				bgEvent["units"] = "mg/dL"
+				# convert mmol/L -> mg/dL
+				bgEvent["glucose"] = to_mgdl(entry["glucose"])
+
+			dat.update(bgEvent)
 
 		out.append(dat)
 

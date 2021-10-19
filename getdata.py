@@ -1,6 +1,7 @@
+from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
 import requests, json, arrow, hashlib, urllib, datetime
 import cloudscraper
-from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
+
 
 DBM_HOST = 'https://analytics.diabetes-m.com'
 
@@ -107,7 +108,7 @@ def upload_nightscout(ns_format):
 	print("Nightscout upload status:", upload.status_code, upload.text)
 
 def get_last_nightscout():
-	last = requests.get(NS_URL + 'api/v1/treatments?count=1&find[enteredBy]='+urllib.parse.quote(NS_AUTHOR))
+	last = requests.get(NS_URL + 'api/v1/treatments?count=1000&find[enteredBy]='+urllib.parse.quote(NS_AUTHOR))
 	if last.status_code == 200:
 		js = last.json()
 		if len(js) > 0:

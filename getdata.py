@@ -1,27 +1,40 @@
 import requests, json, arrow, hashlib, urllib, datetime
+import cloudscraper
 from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
+
+DBM_HOST = 'https://analytics.diabetes-m.com'
 
 # this is the enteredBy field saved to Nightscout
 NS_AUTHOR = "Diabetes-M (dm2nsc)"
 
 
 def get_login():
-	return requests.post('https://analytics.diabetes-m.com/api/v1/user/authentication/login', json={
+	sess = cloudscraper.create_scraper(
+		browser={
+			'browser': 'chrome',
+			'platform': 'windows',
+			'desktop': True
+		}
+	)
+	index = sess.get(DBM_HOST + '/login')
+
+	return sess.post(DBM_HOST + '/api/v1/user/authentication/login', json={
 		'username': USERNAME,
 		'password': PASSWORD,
 		'device': ''
 	}, headers={
-		'origin': 'https://analytics.diabetes-m.com'
-	})
+		'origin': DBM_HOST,
+		'referer': DBM_HOST + '/login'
+	}, cookies=index.cookies), sess
 
 
-def get_entries(login):
+def get_entries(login, sess):
 	auth_code = login.json()['token']
 	print("Loading entries...")
-	entries = requests.post('https://analytics.diabetes-m.com/api/v1/diary/entries/list', 
+	entries = sess.post(DBM_HOST + '/api/v1/diary/entries/list', 
 		cookies=login.cookies, 
 		headers={
-			'origin': 'https://analytics.diabetes-m.com',
+			'origin': DBM_HOST,
 			'authorization': 'Bearer '+auth_code
 		}, json={
 			'fromDate': -1,
@@ -102,9 +115,9 @@ def get_last_nightscout():
 
 def main():
 	print("Logging in to Diabetes-M...", datetime.datetime.now())
-	login = get_login()
+	login, sess = get_login()
 	if login.status_code == 200:
-		entries = get_entries(login)
+		entries = get_entries(login, sess)
 	else:
 		print("Error logging in to Diabetes-M: ",login.status_code, login.text)
 		exit(0)

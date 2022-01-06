@@ -5,4 +5,4 @@ dm2nsc
 
 Data conversion tool for uploading Diabetes-M log data to Nightscout.
 
-update and rename `secret.py-example` to `secret.py`, and then click deploy to heroku
+click deploy to heroku and add requiered config

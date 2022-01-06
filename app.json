@@ -4,8 +4,22 @@
     "repository": "https://github.com/dlinah/dm2nsc",
     "formation": {
         "clock": {
-          "quantity": 1,
-          "size": "free"
+            "quantity": 1,
+            "size": "free"
         }
-      }
+    },
+    "env": {
+        "USERNAME": {
+            "description": "diabetes-m username"
+        },
+        "PASSWORD": {
+            "description": "diabetes-m password"
+        },
+        "NS_URL": {
+            "description": "http://your-nightscout-host-with-trailing-slash/"
+        },
+        "NS_SECRET": {
+            "description": "nightscout-secret-key"
+        }
+    }
 }

@@ -1,0 +1,11 @@
+{
+    "name": "Diabetes m to Nightscout",
+    "description": "send data from dm to nsc",
+    "repository": "https://github.com/dlinah/dm2nsc",
+    "formation": {
+        "clock": {
+          "quantity": 1,
+          "size": "free"
+        }
+      }
+}

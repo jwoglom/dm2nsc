@@ -51,26 +51,54 @@ def to_mgdl(mmol):
 
 def convert_nightscout(entries, start_time=None):
 	out = []
+
 	for entry in entries:
 		bolus = entry["carb_bolus"] + entry["correction_bolus"]
 		time = arrow.get(int(entry["entry_time"])/1000).to(entry["timezone"])
+
+		#Fill notes varable
 		notes = entry["notes"]
 
+		#save notes data to a variable used to skip uploads from nightscoute
+		noteskip = entry["notes"]
+
+		# Check if there is any data for basal, proteins or fats and if notes are empty
+		if (entry["basal"]+ entry["proteins"]+ entry["fats"]) != 0 and len(notes)!=0:
+
+			#Build the string of additional data to be pushed into notes field on nightscout if notes there are notes
+			notes = "%s Basal: %s Proteins: %s Fats: %s" % (entry["notes"], entry["basal"], entry["proteins"], entry["fats"])
+
+		# Check if there is any data for basal, proteins or fats and if notes are not empty
+		if (entry["basal"]+ entry["proteins"]+ entry["fats"]) != 0 and len(notes) == 0:
+
+			#Build the string of additional data to be pushed into notes field on nightscout of there  are no notes
+			notes = "Basal: %s Proteins: %s Fats: %s" % (entry["basal"], entry["proteins"], entry["fats"])
+
 		if start_time and start_time >= time:
+
 			continue
 
 		author = NS_AUTHOR
+
+		# if from nightscout, skip
+		if noteskip == "[Nightscout]":
+			continue
 
 		# You can do some custom processing here, if necessary
 
 		dat = {
 			"eventType": "Meal Bolus",
 			"created_at": time.format(),
-			"carbs": entry["carbs"],
+			"carbs": entry["carbs"],			
+			"fats": entry["fats"],
+			"proteins": entry["proteins"],
+			"basal": entry["basal"],
 			"insulin": bolus,
 			"notes": notes,
 			"enteredBy": author
 		}
+
+
 		if entry["glucose"]:
 			bgEvent = {
 				"eventType": "BG Check",
@@ -85,13 +113,13 @@ def convert_nightscout(entries, start_time=None):
 			# this is due to a UI display issue with Nightscout (it will show mg/dL units always for
 			# bg-only readings, but convert to the NS default unit otherwise)
 			if unit_mmol and not (entry["carbs"] or bolus):
-				bgEvent["units"] = "mmol"
-				# save the mmol/L value from DB-M
-				bgEvent["glucose"] = entry["glucose"]
-			else:
 				bgEvent["units"] = "mg/dL"
 				# convert mmol/L -> mg/dL
 				bgEvent["glucose"] = to_mgdl(entry["glucose"])
+			else:
+				bgEvent["units"] = "mmol"
+				# save the mmol/L value from DB-M
+				bgEvent["glucose"] = entry["glucose"]
 
 			dat.update(bgEvent)
 
@@ -108,7 +136,7 @@ def upload_nightscout(ns_format):
 	print("Nightscout upload status:", upload.status_code, upload.text)
 
 def get_last_nightscout():
-	last = requests.get(NS_URL + 'api/v1/treatments?count=1000&find[enteredBy]='+urllib.parse.quote(NS_AUTHOR))
+	last = requests.get(NS_URL + 'api/v1/treatments?count=1&find[enteredBy]='+urllib.parse.quote(NS_AUTHOR))
 	if last.status_code == 200:
 		js = last.json()
 		if len(js) > 0:
@@ -136,8 +164,3 @@ def main():
 
 	print("Uploading", len(ns_format), "entries to Nightscout...")
 	upload_nightscout(ns_format)
-
-
-if __name__ == '__main__':
-	main()
-

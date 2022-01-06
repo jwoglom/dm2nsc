@@ -6,3 +6,5 @@ dm2nsc
 Data conversion tool for uploading Diabetes-M log data to Nightscout.
 
 click deploy to heroku and add requiered config
+
+data will sync every 10 min

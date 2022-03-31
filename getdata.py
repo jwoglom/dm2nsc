@@ -1,12 +1,20 @@
 from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
 import requests, json, arrow, hashlib, urllib, datetime
-import cloudscraper
+import cloudscraper, sys, os
 
 
 DBM_HOST = 'https://analytics.diabetes-m.com'
 
 # this is the enteredBy field saved to Nightscout
 NS_AUTHOR = "Diabetes-M (dm2nsc)"
+
+# Disable
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+
+# Restore
+def enablePrint():
+    sys.stdout = sys.__stdout__
 
 
 def get_login():
@@ -51,11 +59,17 @@ def to_mgdl(mmol):
 
 def convert_nightscout(entries, start_time=None):
 	out = []
+	# next line silences the output of the gathered records to the screen
+	blockPrint()
 	for entry in entries:
+		print(' '.join(map(str, entries)))
 		bolus = entry["carb_bolus"] + entry["correction_bolus"]
 		time = arrow.get(int(entry["entry_time"])/1000).to(entry["timezone"])
-		notes = entry["notes"]
-
+		# next if block added to compensate for errors related to empty notes
+		if dict["notes"]:
+			notes = 'DBM-Source'
+		else:
+			notes = entry["notes"]
 		if start_time and start_time >= time:
 			continue
 
@@ -96,7 +110,8 @@ def convert_nightscout(entries, start_time=None):
 			dat.update(bgEvent)
 
 		out.append(dat)
-
+	# next line renables console output
+	enablePrint()
 	return out
 
 def upload_nightscout(ns_format):

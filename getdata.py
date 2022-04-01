@@ -59,13 +59,13 @@ def to_mgdl(mmol):
 
 def convert_nightscout(entries, start_time=None):
 	out = []
-#next line silences the output of the gathered records to the screen
+	# next line silences the output of the gathered records to the screen
 	blockPrint()
 	for entry in entries:
 		print(' '.join(map(str, entries)))
 		bolus = entry["carb_bolus"] + entry["correction_bolus"]
 		time = arrow.get(int(entry["entry_time"])/1000).to(entry["timezone"])
-#next if block added to compensate for errors related to empty notes
+		# next if block added to compensate for errors related to empty notes
 		if dict["notes"]:
 			notes = 'DBM-Source'
 		else:
@@ -110,7 +110,7 @@ def convert_nightscout(entries, start_time=None):
 			dat.update(bgEvent)
 
 		out.append(dat)
-#next line renables console output
+	# next line renables console output
 	enablePrint()
 	return out
 

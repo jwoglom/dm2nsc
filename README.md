@@ -2,7 +2,7 @@ dm2nsc
 ======
 ## build.io
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://app.build.io/admin/deploy/)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://app.build.io/admin/deploy?template=https%3A%2F%2Fgithub.com%2Fdlinah%2Fdm2nsc)
 ## heroku
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)

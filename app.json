@@ -1,5 +1,6 @@
 {
     "name": "Diabetes m to Nightscout",
+    "logo":"https://seeklogo.com/images/V/vimeo-icon-logo-441934AEB1-seeklogo.com.png",
     "description": "send data from dm to nsc",
     "repository": "https://github.com/dlinah/dm2nsc",
     "formation": {

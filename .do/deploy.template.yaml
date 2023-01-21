@@ -1,0 +1,7 @@
+spec:
+  name: dm2nsc
+  services:
+    - name: dm2nsc
+      git:
+        branch: master
+        repo_clone_url: https://github.com/dlinah/dm2nsc.git

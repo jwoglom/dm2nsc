@@ -1,0 +1,8 @@
+name: dm2nsc
+services:
+- environment_slug: dm2nsc
+  github:
+    branch: master
+    deploy_on_push: true
+    repo: dlinah/dm2nsc
+  name: dm2nsc

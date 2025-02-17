@@ -98,7 +98,7 @@ def convert_nightscout(entries, start_time=None):
 		if entry["hba1c"]:
 			dat["eventType"] = "HbA1c"
 			dat["hba1c"] = entry["hba1c"]
-			dat["notes"] = "HbA1c %s" % entry["hba1c"]
+			dat["notes"] = "HbA1c %s%s" % (entry["hba1c"], '%')
 
 		out.append(dat)
 
